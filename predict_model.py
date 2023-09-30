@@ -5,11 +5,6 @@ import numpy as np
 import time
 from random import randrange
 
-# Commands:
-#   python detect.py --weights runs/train/result_22/weights/best.pt --source C:\Users\zikra\OneDrive\Documents\Kuliah\Source_Code\YoloV5\test\images\1ef77c61856d3b4b_jpg.rf.a528f50763101224fad39907062c5026.jpg --name inference_22
-#   python export.py --weights runs/train/result_22/weights/best.pt --data C:/Users/zikra/OneDrive/Documents/Kuliah/Source_Code/YoloV5/data.yaml --device cpu --imgsz 640 640
-#   python train.py --data ../data.yaml --weights yolov5s.pt --img 640 --epochs 20 --batch-size 16 --name result_3
-
 # Plot rectangle and text into original image
 def plot_label(label, image):
     class_arr = []

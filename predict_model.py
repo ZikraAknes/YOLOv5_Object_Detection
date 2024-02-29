@@ -2,13 +2,16 @@
 import torch
 import cv2
 import numpy as np
-import time
 from random import randrange
+import os
 
 # Plot rectangle and text into original image
-def plot_label(label, image):
+def plot_label(label, image_size, image):
     class_arr = []
     c = 0
+
+    Rx = image_size[1]/640
+    Ry = image_size[0]/640
 
     for i in label:
         print(i)
@@ -17,16 +20,13 @@ def plot_label(label, image):
         w = int(i[2])
         h = int(i[3])
 
-        x1 = x_center - w//2
-        x2 = x_center + w//2
-        y1 = y_center - h//2
-        y2 = y_center + h//2
+        x1 = int((x_center - w//2)*Rx)
+        x2 = int((x_center + w//2)*Rx)
+        y1 = int((y_center - h//2)*Ry)
+        y2 = int((y_center + h//2)*Ry)
 
-        class_arr.append(i[5])
-        class_arr.append(i[6])
-        class_arr.append(i[7])
-        class_arr.append(i[8])
-        class_arr.append(i[9])
+        for j in range(len(classes)):
+            class_arr.append(i[j+5])
         
         font = cv2.FONT_HERSHEY_DUPLEX
         font_thickness = 1
@@ -48,6 +48,7 @@ def plot_label(label, image):
 
         cv2.rectangle(image, (x1, y1), (x1+w, y1-h), color, -1)
         cv2.rectangle(image, (x1, y1), (x2, y2), color, 3)
+
         cv2.putText(image, objects + " - " + str("{:.2f}".format(class_arr[idx])), (x1,y1), font, font_size,(255,255,255), font_thickness)
 
         class_arr.clear()
@@ -109,9 +110,11 @@ def find_unintersect_label(label):
 
 # Predict label using yolov5 custom model
 def predict_output(img):
-    img_ori = cv2.resize(img, (640, 640), interpolation = cv2.INTER_AREA)
+    img_size = img.shape
+    img_ori = img
+    img = cv2.resize(img, (640, 640), interpolation = cv2.INTER_AREA)
 
-    img = img_ori[:, :, ::-1]
+    img = img[:, :, ::-1]
     img = img.reshape(1,640,640,3)
     img = torch.from_numpy(np.flip(img,axis=0).copy())
     img = img.permute(0, 3, 1, 2)/255
@@ -122,19 +125,20 @@ def predict_output(img):
 
     detected = find_unintersect_label(label=results)
 
-    img_ori = plot_label(label=detected, image=img_ori)
+    img_ori = plot_label(label=detected, image=img_ori, image_size=img_size)
 
     return img_ori
 
 # Read input between realtime or non-realtime
-def read_input(realtime, image_path):
-    if realtime:
+def read_input(path):
+    if (path.split('.')[1] == "mp4"):
         # Open webcam for realtime input
-        cap = cv2.VideoCapture(0)
+        video_path = os.path.join("video/cars.mp4")
+        cap = cv2.VideoCapture(video_path)
         # Process frame as an input 
         while cap.isOpened():
-            start_time = time.perf_counter()
             ret, frame = cap.read()
+            # frame = cv2.flip(frame, 1)
 
             if not ret:
                 break
@@ -146,7 +150,7 @@ def read_input(realtime, image_path):
                 break
     else:
         # Read image locally
-        input_image = cv2.imread(image_path)
+        input_image = cv2.imread(path)
 
         image_pred = predict_output(input_image)
         cv2.imshow("image", image_pred)
@@ -162,7 +166,8 @@ colors = []
 model = torch.hub.load('ultralytics/yolov5', 'custom', 'model.torchscript')
 
 # Image path for local input
-path = "cars.jpg"
+# path = "video/cars.mp4"
+path = "image/cars.jpg"
 
 # Read input
-read_input(realtime=False, image_path=path)
+read_input(path=path)

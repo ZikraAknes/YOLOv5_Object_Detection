@@ -132,13 +132,12 @@ def predict_output(img):
 # Read input between realtime or non-realtime
 def read_input(path):
     if (path.split('.')[1] == "mp4"):
-        # Open webcam for realtime input
+        # Capture frame from video input
         video_path = os.path.join("video/cars.mp4")
         cap = cv2.VideoCapture(video_path)
         # Process frame as an input 
         while cap.isOpened():
             ret, frame = cap.read()
-            # frame = cv2.flip(frame, 1)
 
             if not ret:
                 break
@@ -163,11 +162,11 @@ classes = ['Ambulance', 'Bus', 'Car', 'Motorcycle', 'Truck']
 colors = []
 
 # Load model
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'model.torchscript')
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolo_model/model_cars.torchscript')
 
 # Image path for local input
-# path = "video/cars.mp4"
-path = "image/cars.jpg"
+path = "video/cars.mp4"
+# path = "image/motorcycle.jpg"
 
 # Read input
 read_input(path=path)
